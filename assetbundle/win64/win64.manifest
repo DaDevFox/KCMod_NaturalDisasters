@@ -1,0 +1,16 @@
+ManifestFileVersion: 0
+CRC: 1545530958
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: custombuilding_ed847f93c115a716396c2cfcf9d4905c
+      Dependencies: {}
+    Info_1:
+      Name: buildingreplacemodeltest_085d28af8cf9b25f91efee4f48c5b78e
+      Dependencies: {}
+    Info_2:
+      Name: insanedifficultyassets_d6e589e705c6b53a061c929a28278dc6
+      Dependencies: {}
+    Info_3:
+      Name: naturaldisastersassets_915594fc9f1efb7e10ca77aacc13ce02
+      Dependencies: {}
