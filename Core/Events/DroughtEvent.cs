@@ -74,7 +74,7 @@ namespace Disasters.Events
         public static float droughtSunIntensity = 0.9f;
         public static float droughtSunShadows = 0.8f;
 
-        public static float droughtBloom = 8f;
+        public static float droughtBloom = 2f;
         public static MinMax droughtFog = new MinMax(0f, 45f);
 
         public static Dictionary<string, ResourceAmount> foodBuildingYields = new Dictionary<string, ResourceAmount>()
