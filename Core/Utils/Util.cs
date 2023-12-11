@@ -235,6 +235,26 @@ namespace Disasters
             return SRand.Range(0f, 1f);
         }
 
+        /// <summary>
+        /// Scaling < 1 means logarithmic type curve, >1 means 1/x type curve
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="scaling"></param>
+        /// <returns></returns>
+        public static float ExponentialWeight(float value, float scaling)
+        {
+            return Mathf.Pow(scaling, value - 1) * value;
+        }
+
+        public static float ExponentialWeightedRandom(float min, float max, float scaling)
+        {
+            float rand = SRand.Range(0f, 1f);
+            return (Mathf.Pow(scaling, rand - 1) * rand) * (max - min) + min;
+        }
+
+        //A^(x-1) * x
+        //A is constant scalar; x is input
+
         public static float LinearWeightedRandom(float min, float max, float increment = 1f)
         {
             if (min == max)

@@ -15,9 +15,9 @@ namespace Disasters.Events
 
         public float AOE_terraformLikelinessWeightage = 0.6f;
         public float AOE_fireChance = 0.9f;
-        public float AOE_rockChance = 0.05f;
-        public float AOE_ironChance = 0.05f;
-        public float AOE_stoneChance = 0.1f;
+        public float AOE_rockChance = 0.025f;
+        public float AOE_ironChance = 0.025f;
+        public float AOE_stoneChance = 0.05f;
         public float AOE_treeKillChance = 0.3f;
 
         public override int testFrequency => 2;
@@ -39,10 +39,6 @@ namespace Disasters.Events
             if (!Settings.earthquakes)
                 return;
 
-            float magnitude = Util.LinearWeightedRandom(Settings.earthquakeStrength.Min, Settings.earthquakeStrength.Max, 0.01f) + Settings.earthquakeVariance.Rand();
-            float m_weightage = magnitude / 10f;
-
-            float AOE_terraformChance = 0.5f * m_weightage;
             float radius = 1f;
 
             int peopleKilled = 0;
@@ -53,18 +49,23 @@ namespace Disasters.Events
             float lineBreak = 1.5f;
             float lineResolution = 1f;
 
-            Cell rand1 = World.inst.cellsToLandmass[landmass].RandomElement();
-            Cell rand2 = World.inst.cellsToLandmass[landmass].RandomElement();
+            Cell origin = World.inst.cellsToLandmass[landmass].RandomElement();
+            Cell end = World.inst.cellsToLandmass[landmass].RandomElement();
 
-            Cell[] line = GetCraggyLine(rand1, rand2, 10);
+            Cell[] line = GetCraggyLine(origin, end, 10);
             Cell last = null;
 
+            int distance = (int)(origin.Center - end.Center).magnitude;
+            int i = line.Length;
+
+            float magnitude = Util.ExponentialWeightedRandom(Settings.earthquakeStrength.Min, Settings.earthquakeStrength.Max, 0.01f * distance) + Settings.earthquakeVariance.Rand();
+            float m_weightage = magnitude / 10f;
+            float AOE_terraformChance = 0.5f * m_weightage;
+
             Cam.inst.Shake(new Vector3(magnitude * 2, 0f, magnitude * 2));
-
-            float i = line.Length;
-
+            
             Vector3 midpoint = line[line.Length / 2].Center;
-            KingdomLog.TryLog("earthquakeStruck", "My lord, " + GetAdjectiveForMagnitude(magnitude) + " earthquake of magnitude " + Util.RoundToFactor(magnitude,0.1f).ToString() + " has struck the land! ", KingdomLog.LogStatus.Warning, 1, midpoint);
+            KingdomLog.TryLog("earthquakeStruck", "My lord, " + GetAdjectiveForMagnitude(magnitude, distance) + " earthquake has struck the land! ", KingdomLog.LogStatus.Warning, 1, midpoint);
 
             foreach (Cell point in line)
             {
@@ -79,15 +80,14 @@ namespace Disasters.Events
 
                     while (currentDiff > lineBreak)
                     {
-
                         currentPos += Vector3.ClampMagnitude(difference, lineResolution);
                         Cell currentCell = World.inst.GetCellData(currentPos);
 
                         #region Burn Line
 
-                        int m_radius = (int)(magnitude * radius);
-                        if (m_radius <= 0)
-                            m_radius = 1;
+                        //int m_radius = (int)(magnitude * radius);
+                        //if (m_radius <= 0)
+                        //    m_radius = 1;
 
                         bool terraform = Util.Randi() <= burnLine_terrafromChance;
 
@@ -144,20 +144,20 @@ namespace Disasters.Events
 
                         #region AOE
 
-                        World.inst.ForEachTileInRadius((int)currentCell.Center.x, (int)currentCell.Center.z, m_radius, delegate (int x, int z, Cell _cell)
+                        World.inst.ForEachTileInRadius((int)currentCell.Center.x, (int)currentCell.Center.z, (int)radius, delegate (int x, int z, Cell _cell)
                         {
                              
                             float burnLineDist = Vector3.Distance(currentCell.Center, _cell.Center);
 
                             // bias all chance events to be less likely further from the source line
-                            float weightage = 1f - (burnLineDist / m_radius);
+                            float weightage = 1f - (burnLineDist / radius);
 
                             bool c_terraform = Util.Randi() < weightage * AOE_terraformChance;
                             bool c_fire = Util.Randi() < weightage * AOE_fireChance;
                             bool c_rock = Util.Randi() < weightage * AOE_rockChance && _cell.Type != ResourceType.Water;
                             bool c_treeKill = Util.Randi() < weightage * AOE_treeKillChance;
 
-
+                            
                             if (c_terraform)
                             {
 
@@ -238,7 +238,7 @@ namespace Disasters.Events
                     }
                 }
                 last = point;
-                i -= 1f;
+                i--;
             }
 
             }
@@ -269,30 +269,68 @@ namespace Disasters.Events
         }
 
 
-        private string GetAdjectiveForMagnitude(float magnitude)
+        private string GetAdjectiveForMagnitude(float magnitude, int length)
         {
-            string adjective = "";
-            if(magnitude > 9.0f)
+            string magnitudeAdjective = "";
+            bool magnitudeSignificant = false;
+            if (magnitude > 4.0f)
+                magnitudeSignificant = true;
+
+            if (magnitude > 9.0f)
             {
-                adjective = "an absolutely massive";
+                magnitudeAdjective = "absolutely monstrous";
             }
-            else if(magnitude <= 9.0f && magnitude > 7.4f)
+            else if (magnitude > 7.4f)
             {
-                adjective = "a devestating";
+                magnitudeAdjective = "devestating";
             }
-            else if(magnitude <= 7.4f && magnitude > 5.7f)
+            else if (magnitude > 5.7f)
             {
-                adjective = "a tremerous";
+                magnitudeAdjective = "tremerous";
             }
-            else if(magnitude <= 5.7f && magnitude > 3.8f)
+            else if (magnitude > 4.0f)
             {
-                adjective = "a frightful";
+                magnitudeAdjective = "frightful";
+            }
+            else if (magnitude > 2f)
+            {
+                magnitudeAdjective = "slight";
+            }
+            else
+                magnitudeAdjective = "pathetic";
+
+
+            string sizeAdjective = "";
+            bool sizeSignificant = false;
+            if (length >= 15)
+                sizeSignificant = true;
+
+            if(length > 50)
+            {
+                sizeAdjective = "a massive";
+            }
+            else if (length >= 30)
+            {
+                sizeAdjective = "a large";
+            }
+            else if (length >= 15)
+            {
+                sizeAdjective = "a moderately-sized";
+            }
+            else if (length >= 5)
+            {
+                sizeAdjective = "a small";
             }
             else
             {
-                adjective = "a slight";
+                sizeAdjective = "a tiny";
             }
-            return adjective;
+
+            string connective = SRand.CoinFlip() ? " and " : ", ";
+            if (magnitudeSignificant != sizeSignificant)
+                connective = " but ";
+
+            return $"{sizeAdjective}{connective}{magnitudeAdjective}";
         }
         
 

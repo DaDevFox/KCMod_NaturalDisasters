@@ -61,7 +61,7 @@ namespace Disasters
 
         public static float waterRestingHeight { get; } = -0.65f;
         public static MinMax earthquakeVariance { get; } = new MinMax(0.1f, 0.9f);
-        public static MinMax landElevation { get; } = new MinMax(0f, 0.3f);
+        public static MinMax landElevation { get; } = new MinMax(0f, 0.15f);
         public static MinMax waterElevation { get; } = new MinMax(-2f, -0.25f);
 
         #endregion
@@ -95,7 +95,7 @@ namespace Disasters
                     return amount;
 #if ADVANCED_SETTINGS    
 
-            }
+                }
                 else
                 {
                     ResourceAmount amount = new ResourceAmount();
@@ -118,7 +118,7 @@ namespace Disasters
         public static bool droughtsDisableFishing =>
 #if ADVANCED_SETTINGS 
             instance != null ? instance.c_droughts.disableFishing : 
-            #endif
+#endif
             false;
         public static bool droughtsAffectWeather =>
 #if ADVANCED_SETTINGS
@@ -173,7 +173,7 @@ namespace Disasters
             public float strengthMin => s_strengthMin.Value;
 
             [Setting("Earthquake Strength Max")]
-            [Slider(0.1f, 4f, 4f)]
+            [Slider(0.1f, 8f, 4f)]
             public InteractiveSliderSetting s_strengthMax { get; private set; }
             public float strengthMax => s_strengthMax.Value;
         }
