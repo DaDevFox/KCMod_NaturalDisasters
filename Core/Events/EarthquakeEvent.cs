@@ -95,7 +95,6 @@ namespace Disasters.Events
 
                         if (terraform)
                         {
-
                             // weighted random in favor of terraforming tiles into similar type of the original tile
                             bool likeType = Util.Randi() < burnLine_terraformLikelinessWeightage;
 
